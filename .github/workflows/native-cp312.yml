@@ -37,6 +37,8 @@ jobs:
           architecture: arm64
       - name: Check native interpreter
         run: python -c "import sys,sysconfig; print(sys.version, sysconfig.get_platform()); assert sysconfig.get_platform() == 'win-arm64'; assert sys.version_info[:2] == (3,12)"
+      - name: Install declared documentation build tool
+        uses: ssciwr/doxygen-install@f13be1686235deee0aeb6cdf56640170691dc96b
       - name: Build unmodified pinned source wheel
         shell: pwsh
         env:
@@ -59,7 +61,7 @@ jobs:
           python -m pip freeze > "$env:STAGE/installed.txt"
           python -m pytest harness/native-ci/test_materialx_native.py -v --junitxml="$env:STAGE/native.xml"
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          python -m pytest source/python/MaterialXTest/main.py source/python/MaterialXTest/genshader.py -v --junitxml="$env:STAGE/upstream.xml"
+          python -m pytest source/python/MaterialXTest/main.py source/python/MaterialXTest/genshader.py --import-mode=importlib -v --junitxml="$env:STAGE/upstream.xml"
           exit $LASTEXITCODE
       - uses: actions/upload-artifact@v4
         if: always()
