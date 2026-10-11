@@ -42,8 +42,8 @@ jobs:
       - name: Select installed MSVC 14.4x for the historical release
         shell: pwsh
         run: |
-          $tools = @(Get-ChildItem 'C:/Program Files/Microsoft Visual Studio/*/*/VC/Tools/MSVC' -Directory)
-          $tools | Select-Object FullName | Format-Table
+          $tools = @(Get-ChildItem 'C:/Program Files/Microsoft Visual Studio/*/*/VC/Tools/MSVC/*' -Directory)
+          $tools | Select-Object FullName | Format-Table | Out-String | Tee-Object -FilePath "$env:STAGE/toolchains-discovered.txt"
           $legacy = $tools | Where-Object { $_.Name -match '^14\.4[0-9]\.' } | Sort-Object Name -Descending | Select-Object -First 1
           if (-not $legacy) { throw 'No installed MSVC 14.4x: preserve /WX; do not delete deprecated release APIs' }
           "CMAKE_GENERATOR_TOOLSET=v143,version=$($legacy.Name)" >> $env:GITHUB_ENV
