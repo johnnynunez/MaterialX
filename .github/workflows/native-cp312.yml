@@ -39,6 +39,15 @@ jobs:
         run: python -c "import sys,sysconfig; print(sys.version, sysconfig.get_platform()); assert sysconfig.get_platform() == 'win-arm64'; assert sys.version_info[:2] == (3,12)"
       - name: Install declared documentation build tool
         uses: ssciwr/doxygen-install@f13be1686235deee0aeb6cdf56640170691dc96b
+      - name: Select installed MSVC 14.4x for the historical release
+        shell: pwsh
+        run: |
+          $tools = @(Get-ChildItem 'C:/Program Files/Microsoft Visual Studio/*/*/VC/Tools/MSVC' -Directory)
+          $tools | Select-Object FullName | Format-Table
+          $legacy = $tools | Where-Object { $_.Name -match '^14\.4[0-9]\.' } | Sort-Object Name -Descending | Select-Object -First 1
+          if (-not $legacy) { throw 'No installed MSVC 14.4x: preserve /WX; do not delete deprecated release APIs' }
+          "CMAKE_GENERATOR_TOOLSET=v143,version=$($legacy.Name)" >> $env:GITHUB_ENV
+          $legacy.FullName | Out-File "$env:STAGE/toolchain.txt"
       - name: Build unmodified pinned source wheel
         shell: pwsh
         env:
